@@ -85,10 +85,10 @@ int main() {
     while(getline(cin, line) && !line.empty()) {
         istringstream iss(line);
         while (iss >> word) {
-            words.push_back(normalize(word)); // íîðìàëèçóåì ñëîâî
+            words.push_back(normalize(word)); // приводим к нужному виду
         }
     }
-    // ÷òîáû ïðèìåíèòü dsu êàæäîìó ñëîâó ïðèñîâèì åãî íîìåð
+    // выделяем уникальные слова и присваиваем каждому слову его уникальный номер
     for (string w : words) {
         if (!w.empty() && ids.find(w) == ids.end()) {
             ids[w] = u_words.size();
@@ -98,7 +98,10 @@ int main() {
     if (u_words.empty()) {
         return 0;
     }
-    // делаем снм  k
+    /* делаем снм - это главная идея программы, чтобы быстро объединять множества, 
+    а эти множества объединяются через корень => мне сразу пришла на ум такая структура данных как снм
+    еще нужно сделать радиус контекстного окна - понятно, что нужно сделать сканлайн с окном размера k
+    */
     int n = u_words.size();
     sz.assign(n, 1);
     par.assign(n, 0);
@@ -107,12 +110,12 @@ int main() {
 
     for (int idx = 0; idx < (int)words.size(); idx++) {
         string curr = words[idx];
-        dq.push_back(curr); // ñêîëüçÿùåå îêíî ðàçìåðîì k
+        dq.push_back(curr); // окно размером k, я реализоал через дек
         while ((int)dq.size() > k) {
             dq.pop_front();
         }
 
-        vector<string> a; // íå áóäåì ó÷èòûâàòü ïóñòûå ñëîâà
+        vector<string> a; // тк нужны только непустые слова то я отфильтрую пустые
         for (int j = 0; j < (int)dq.size(); j++) {
             if (!dq[j].empty()) {
                 a.push_back(dq[j]);
@@ -129,12 +132,12 @@ int main() {
     }
 
 
-    unordered_map<string, int> freq; // ÷àñòîòû
+    unordered_map<string, int> freq; // часоты
     for (string w : words) {
         if (!w.empty()) freq[w]++;
     }
 
-    unordered_map<int, vector<string>> groups; // äåëàåì ãðóïïû
+    unordered_map<int, vector<string>> groups; // выделяем группы
     for (auto [w, id] : ids) {
         int rot = root(id);
         groups[rot].push_back(w);
@@ -146,13 +149,13 @@ int main() {
         for (const string& w : words) {
             t += freq[w];
         }
-        string best; // âûáèðàåì ñàìîå êîðîòêîå è ëåêñèêîãðàôè÷åñêîå ñëîâî
+        string best; // ищем лексикографически наименьшее слово в группе
         for (const string& w : words) {
             if (w.length() > 1) {
                 if (w < best || best.empty()) best = w;
             }
         }
-        if (best.empty() && !words.empty()) {
+        if (best.empty() && !words.empty()) { 
             best = words[0];
             for (string w : words) {
                 if (w < best) best = w;
@@ -164,9 +167,9 @@ int main() {
         }
     }
 
-    sort(res.begin(), res.end(), comp); // ñîðòèðîâêà ñ êîìïàðàòîðîì
+    sort(res.begin(), res.end(), comp); // сортируем группы со своим компаратором
 
-    for (auto [w, fr] : res) { // âûâîäèì ðåçóëüòàò
+    for (auto [w, fr] : res) { // выводим результат
         cout << w << ": " << fr << "\n";
     }
     return 0;
